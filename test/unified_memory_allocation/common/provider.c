@@ -153,3 +153,57 @@ uma_memory_provider_handle_t mallocProviderCreate() {
     assert(ret == UMA_RESULT_SUCCESS);
     return hProvider;
 }
+
+struct mockParams {
+    uma_memory_provider_handle_t hMockProvider;
+    int MaxPoolSize;
+    int MaxPoolableSize;
+    int Capacity;
+    int SlabMinSize;
+};
+
+static enum uma_result_t mockInitialize(void *params, void **pool) {
+    struct mockParams* mockPool = (struct mockParams*) malloc(sizeof(struct mockParams));
+    *mockPool = *((struct mockParams*) params);
+    *pool = mockPool;
+
+    return UMA_RESULT_SUCCESS;
+}
+
+static void mockFinalize(void *pool) {
+    free(pool);
+}
+
+static enum uma_result_t mockAlloc(void *provider, size_t size, size_t alignment, void **ptr) {
+    struct mockParams* mockProvider = (struct mockParams*) provider;
+    return umaMemoryProviderAlloc(mockProvider->hMockProvider, size, alignment, ptr);
+}
+
+static enum uma_result_t mockFree(void *provider, void *ptr, size_t size) {
+    struct mockParams* mockProvider = (struct mockParams*) provider;
+    return umaMemoryProviderFree(mockProvider->hMockProvider, ptr, size);
+}
+
+enum uma_result_t mockGetLastResult(void *provider, const char** ppMsg) {
+    struct mockParams* mockProvider = (struct mockParams*) provider;
+    return umaMemoryProviderGetLastResult(mockProvider->hMockProvider, ppMsg);
+}
+
+uma_memory_provider_handle_t mockProviderCreate() {
+    struct uma_memory_provider_ops_t ops = {
+        .version = UMA_VERSION_CURRENT,
+        .initialize = mockInitialize,
+        .finalize = mockFinalize,
+        .alloc = mockAlloc,
+        .free = mockFree,
+        .get_last_result = mockGetLastResult
+    };
+
+    uma_memory_provider_handle_t hProvider;
+    enum uma_result_t ret = umaMemoryProviderCreate(&ops, NULL,
+                                     &hProvider);
+
+    (void) ret; /* silence unused variable warning */
+    assert(ret == UMA_RESULT_SUCCESS);
+    return hProvider;
+}

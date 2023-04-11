@@ -13,6 +13,7 @@ extern "C" {
 uma_memory_provider_handle_t nullProviderCreate(void);
 uma_memory_provider_handle_t traceProviderCreate(uma_memory_provider_handle_t hUpstreamProvider, void (*trace)(const char *));
 uma_memory_provider_handle_t mallocProviderCreate(void);
+uma_memory_provider_handle_t mockProviderCreate(void);
 
 #if defined(__cplusplus)
 }
