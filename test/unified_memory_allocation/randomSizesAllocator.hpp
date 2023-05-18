@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Intel Corporation
 // SPDX-License-Identifier: MIT
 
-#include "memoryManager.hpp"
 #include "helpers.hpp"
 #include <random>
 #include <vector>
@@ -9,7 +8,8 @@
 class RandomSizesAllocator
 {
 private:
-    std::vector<MemoryManager> allocated_memory;
+    std::vector<std::unique_ptr<void, std::function<void(void*)>>> allocated_memory;
+    std::vector<size_t> mem_sizes;
     std::default_random_engine generator;
     std::uniform_int_distribution<int> memory_distribution;
 
@@ -26,10 +26,13 @@ public:
         allocated_memory.reserve(max_allocations_number);
     }
 
-    size_t malloc_random_memory(uma_memory_pool_t * pool)
+    size_t malloc_random_memory(uma_memory_pool_handle_t pool)
     {
         size_t size = get_random_size();
-        allocated_memory.emplace_back(size, pool);
+        // create deleted function - capture pool and use it to call umaPoolFree.
+        auto dtor = [pool = pool](void* ptr) {umaPoolFree(pool, ptr); }; 
+        allocated_memory.emplace_back(umaPoolMalloc(pool, size), dtor);
+        mem_sizes.emplace_back(size);
         return size;
     }
 
@@ -41,7 +44,8 @@ public:
             0, allocated_memory.size() - 1);
         int random_index = distribution(generator);
         auto it = std::begin(allocated_memory) + random_index;
-        size_t size = it->size();
+        auto mem_it = std::begin(mem_sizes) + random_index;
+        size_t size = *mem_it;
         allocated_memory.erase(it);
         return size;
     }

@@ -107,7 +107,7 @@ TEST_P(poolTest, freeRandomMemory) {
 }
 
 TEST_P(poolTest, multiThreadedMallocFree) {
-    auto poolMalloc=[](size_t allocSize, uma_memory_pool_t * pool) {
+    auto poolMalloc=[](size_t allocSize, uma_memory_pool_handle_t pool) {
         auto *ptr = umaPoolMalloc(pool, allocSize);
         ASSERT_NE(ptr, nullptr);
         umaPoolFree(pool, ptr);

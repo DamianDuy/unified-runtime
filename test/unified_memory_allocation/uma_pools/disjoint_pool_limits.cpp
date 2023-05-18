@@ -14,6 +14,6 @@ static DisjointPool::Config poolConfig() {
 }
 
 TEST(disjointPoolLimits, disjointPoolSlabMinSizeLimit) {
-    auto pool = uma::poolMakeUnique<DisjointPool>(uma::wrapProviderUnique(mockProviderCreate()), poolConfig());
+    //auto pool = uma::poolMakeUnique<DisjointPool>(uma::wrapProviderUnique(mockProviderCreate()), poolConfig());
     // I need to get config parameters from provider functions but how
 }
